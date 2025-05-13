@@ -1,10 +1,34 @@
+"use client";
+
+import Card from "@/src/components/Card";
 import { Inter } from "next/font/google";
-import Image from "next/image";
+import { useEffect, useState } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 const cn = (...classes: string[]) => classes.filter(Boolean).join(" ");
 
+let endpointUrl = process.env.NEXT_PUBLIC_API_ENDPOINT;
+let token = process.env.NEXT_PUBLIC_BEARER_TOKEN;
+
+const options = {
+  method: "GET",
+  headers: {
+    accept: "application/json",
+    Authorization: `Bearer ${token}`,
+  },
+};
+
 export default function Home() {
+  const [movieData, setMovieData] = useState(null);
+
+  useEffect(() => {
+    fetch(`${endpointUrl}/3/movie/popular?language=en-US&page=1`, options)
+      .then((res) => res.json())
+      .then((data) => setMovieData(data.results))
+      .then((res) => console.log(res))
+      .catch((err) => console.error(err));
+  }, []);
+
   return (
     <main
       className={cn(
@@ -12,13 +36,22 @@ export default function Home() {
         inter.className
       )}
     >
-      <Image
-        src="https://i.giphy.com/l3BwSPbqx3QGKEgpp2.webp"
-        alt="Gif"
-        width={400}
-        height={400}
-      />
-      <p>You can start your project here. Good luck!</p>
+      <div className="grid grid-cols-4 gap-4">
+        {movieData
+          ? movieData.map((movie, index) => {
+              const { id, title, overview, release_date } = movie;
+              return (
+                <Card
+                  key={index}
+                  id={id}
+                  title={title}
+                  overview={overview}
+                  release_date={release_date}
+                />
+              );
+            })
+          : "No Data uwu"}
+      </div>
     </main>
   );
 }
